@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ace"
+version = "0.1.0"
+description = "Agentic Context Engineering utilities for OpenAI Agents."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "ACE contributors" }
+]
+dependencies = [
+  "openai-agents",
+  "openai>=1.0.0",
+  "pydantic>=2.0.0",
+  "faiss-cpu",
+  "numpy",
+  "python-dotenv",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest>=8.0.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+  "pytest>=8.0.0",
+]
