@@ -27,7 +27,7 @@ keywords = ["openai", "agents", "context", "faiss", "llm"]
 
 dependencies = [
   "openai-agents",
-  "openai>=1.0.0",
+  "openai>=1.45.0",
   "pydantic>=2.0.0",
   "faiss-cpu",
   "numpy",

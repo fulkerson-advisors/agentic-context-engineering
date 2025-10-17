@@ -156,6 +156,7 @@ This modularity keeps ACE adaptable as your stack evolves.
 1. **Install and configure credentials**
    ```bash
    uv pip install agentic-context-engineering
+   uv pip install --upgrade \"openai>=1.45.0\"
    export OPENAI_API_KEY=sk-...
    # optionally set OPENAI_MODEL / OPENAI_EMBEDDING_MODEL / OPENAI_REFLECTOR_MODEL
    ```
