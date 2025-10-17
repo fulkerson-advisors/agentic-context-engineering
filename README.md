@@ -1,4 +1,4 @@
-# ACE (Agentic Context Engineering)
+# Agentic Context Engineering (ACE)
 
 Production-ready toolkit for building self-improving OpenAI agents that learn from their own tool executions. This repository implements the workflow introduced in **Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models** (Zhang et al., Stanford &amp; SambaNova, Oct 2025) and packages it for practical use with the OpenAI Agents SDK.
 
@@ -47,7 +47,7 @@ Each insight is a bullet with metadata (usage counts, timestamps, origin tool). 
 
 1. **Clone and enter the repo**
    ```bash
-   git clone https://github.com/<you>/ace.git
+   git clone https://github.com/fulkerson-advisors/agentic-context-engineering
    cd ace
    ```
 2. **Sync dependencies**
@@ -59,7 +59,6 @@ Each insight is a bullet with metadata (usage counts, timestamps, origin tool). 
    cp .env.example .env
    # edit .env with your OpenAI API key and models
    ```
-   > If `OPENAI_EMBEDDING_MODEL` is omitted, ACE detects when `OPENAI_MODEL` is not an embedding model and falls back to `text-embedding-3-small`.
 4. **(Optional) Activate the environment**
    ```bash
    source .venv/bin/activate
@@ -154,6 +153,24 @@ This modularity keeps ACE adaptable as your stack evolves.
 
 ---
 
+## Testing & Packaging
+
+- Run the test suite (`test` extra optional but recommended):
+  ```bash
+  uv sync --extra test
+  uv run pytest
+  ```
+- Build distributables for PyPI:
+  ```bash
+  uv build
+  ```
+- Publish after creating a token on PyPI (or TestPyPI):
+  ```bash
+  UV_PUBLISH_TOKEN=pypi-<token> uv publish
+  ```
+
+---
+
 ## Project Status & Roadmap
 
 - ✅ OpenAI Agents SDK integration mirroring ACE’s architecture
@@ -166,16 +183,6 @@ This modularity keeps ACE adaptable as your stack evolves.
   - Pluggable vector backends
 
 Issues and PRs are welcome—focus on shipping high-signal insights rather than sweeping rewrites.
-
----
-
-## Contributing
-
-1. `uv sync`
-2. Run the relevant example(s) with a valid API key
-3. Update documentation when behaviour changes
-4. Check `git status` to avoid committing generated `.db`/`.faiss` artefacts (`.gitignore` already excludes them)
-5. Submit a PR with a clear description of the change and any manual validation performed
 
 ---
 

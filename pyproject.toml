@@ -12,6 +12,23 @@ license = { text = "MIT" }
 authors = [
   { name = "ACE contributors" }
 ]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+keywords = ["openai", "agents", "context", "faiss", "llm"]
+
+[project.urls]
+Homepage = "https://github.com/fulkerson-advisors/agentic-context-engineering"
+Repository = "https://github.com/fulkerson-advisors/agentic-context-engineering"
+Issues = "https://github.com/fulkerson-advisors/agentic-context-engineering/issues"
 dependencies = [
   "openai-agents",
   "openai>=1.0.0",
@@ -26,7 +43,21 @@ test = [
   "pytest>=8.0.0",
 ]
 
-[tool.uv]
-dev-dependencies = [
+[tool.uv.dependency-groups]
+dev = [
   "pytest>=8.0.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["ace"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  ".github",
+  ".idea",
+  "examples/*.db",
+  "examples/*.faiss",
+  "examples/*.faiss.meta",
+  "scripts/*.pyc",
+  "__pycache__",
 ]
