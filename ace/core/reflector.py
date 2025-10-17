@@ -31,10 +31,12 @@ class InsightItem(BaseModel):
     category: InsightCategory
 
 
-class InsightsList(BaseModel):
-    """Pydantic model for structured output."""
+class MaybeInsight(BaseModel):
+    """Structured response allowing optional insight."""
 
-    insights: Optional[List[InsightItem]] = Field(default=None)
+    result: Optional[InsightItem] = Field(default=None)
+    error: bool = Field(default=False)
+    message: Optional[str] = Field(default=None)
 
 
 class OpenAIReflector(ReflectorInterface):
@@ -65,7 +67,17 @@ Return JSON that matches the schema:
   ]
 }
 
-Generate 0-1 insights per execution but ensure they are relevant. Do not make things up."""
+Return JSON that matches the schema:
+{
+  "result": {
+    "text": "...",
+    "category": "success_pattern" | "error_avoidance" | "parameter_constraint" | "edge_case"
+  } | null,
+  "error": false,
+  "message": "Optional commentary or why no insight was generated."
+}
+
+Only populate result when you have a clear, reusable insight. If nothing stands out, leave result null and provide a short message explaining why. Set error=true only when you encounter a genuine problem (e.g., malformed input). Do not invent insights."""
     
     def __init__(
         self,
@@ -107,31 +119,30 @@ Generate 0-1 insights per execution but ensure they are relevant. Do not make th
                     {"role": "system", "content": self.SYSTEM_PROMPT},
                     {"role": "user", "content": prompt}
                 ],
-                text_format=InsightsList,
+                text_format=MaybeInsight,
             )
 
-            parsed: Optional[InsightsList] = getattr(response, "output_parsed", None)
+            parsed: Optional[MaybeInsight] = getattr(response, "output_parsed", None)
             if parsed is None:
                 return []
 
-            insights = parsed.insights or []
-            
-            # Convert to Bullets
-            bullets = []
-            for item in insights:
-                category = item.category
-                bullets.append(Bullet(
-                    id=str(uuid.uuid4()),
-                    content=item.text,
-                    tool_name=execution.tool_name,
-                    category=category,
-                    metadata={
-                        'success': execution.success,
-                        'timestamp': execution.timestamp.isoformat()
-                    }
-                ))
-            
-            return bullets
+            if parsed.result is None:
+                return []
+
+            item = parsed.result
+            bullet = Bullet(
+                id=str(uuid.uuid4()),
+                content=item.text,
+                tool_name=execution.tool_name,
+                category=item.category,
+                metadata={
+                    'success': execution.success,
+                    'timestamp': execution.timestamp.isoformat(),
+                    'reflector_message': parsed.message,
+                }
+            )
+
+            return [bullet]
             
         except Exception as e:
             logger.warning("Reflection failed: %s", e)
