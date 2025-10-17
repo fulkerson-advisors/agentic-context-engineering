@@ -26,8 +26,8 @@ classifiers = [
 keywords = ["openai", "agents", "context", "faiss", "llm"]
 
 dependencies = [
-  "openai-agents",
-  "openai>=1.45.0",
+  "openai-agents==0.3.3",
+  "openai>=1.109.1",
   "pydantic>=2.0.0",
   "faiss-cpu",
   "numpy",
