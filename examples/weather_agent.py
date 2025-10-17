@@ -216,7 +216,7 @@ async def main():
     logger.info("Learned Context (would be injected into future queries)")
     logger.info("=" * 80)
     
-    bullets = curator.get_relevant_bullets(query="weather", top_k=10)
+    bullets = curator.get_playbook(tool_name="weather")
     context = curator.format_bullets_for_prompt(bullets)
     logger.info("%s", context)
     

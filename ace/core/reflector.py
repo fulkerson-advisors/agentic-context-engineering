@@ -65,7 +65,7 @@ Return JSON that matches the schema:
   ]
 }
 
-Generate 1-3 insights per execution."""
+Generate 1-3 insights per execution but ensure they are relevant. Do not make things up."""
     
     def __init__(
         self,
@@ -82,7 +82,7 @@ Generate 1-3 insights per execution."""
         """
         self.client = client or OpenAI()
         self.model = get_openai_model(
-            default="gpt-4.1-mini",
+            default="gpt-5-nano",
             env_var="OPENAI_REFLECTOR_MODEL",
         ) if model is None else model
     

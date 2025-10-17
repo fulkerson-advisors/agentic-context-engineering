@@ -188,11 +188,8 @@ class ACEAgent:
         Returns:
             Agent result
         """
-        # Get relevant bullets
-        bullets = self.curator.get_relevant_bullets(
-            query=input,
-            top_k=10
-        )
+        # Get the full playbook (Generator will decide what to apply)
+        bullets = self.curator.get_playbook()
         
         # Format context
         context = self.curator.format_bullets_for_prompt(bullets)

@@ -153,11 +153,7 @@ async def test_ace_components():
     
     logger.info("")
     logger.info("Retrieving bullets for 'get_weather'...")
-    retrieved = curator.get_relevant_bullets(
-        query="weather city validation",
-        tool_name="get_weather",
-        top_k=5
-    )
+    retrieved = curator.get_playbook(tool_name="get_weather")
     
     logger.info("✓ Retrieved %s bullets:", len(retrieved))
     for bullet in retrieved:

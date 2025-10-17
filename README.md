@@ -194,7 +194,7 @@ This modularity keeps ACE adaptable as your stack evolves.
 4. **Manual integration (custom frameworks)**
    - Call `OpenAIReflector.reflect(...)` with a `ToolExecution` to generate insights.
    - Feed the returned bullets into `Curator.add_bullets(...)`.
-   - Retrieve guidelines with `Curator.get_relevant_bullets(...)` and format them via `Curator.format_bullets_for_prompt(...)`.
+   - Retrieve the playbook with `Curator.get_playbook(...)` and format it via `Curator.format_bullets_for_prompt(...)`.
 
 ### End-to-End Meeting Planner Example
 

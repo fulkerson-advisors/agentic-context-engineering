@@ -104,6 +104,24 @@ class Curator:
         
         return added_count
     
+    def get_playbook(
+        self,
+        tool_name: Optional[str] = None,
+    ) -> List[Bullet]:
+        """
+        Retrieve the current ACE playbook.
+        
+        Following ACE paper: the Generator is given the full, structured playbook
+        (optionally filtered by tool) and decides what guidance to apply.
+        
+        Args:
+            tool_name: Optional tool name filter
+            
+        Returns:
+            Ordered list of bullets (sorted by usage_count DESC, created_at DESC)
+        """
+        return self.storage.get_bullets(tool_name=tool_name, limit=None)
+    
     def get_relevant_bullets(
         self,
         query: Optional[str] = None,
@@ -111,44 +129,15 @@ class Curator:
         top_k: int = 10
     ) -> List[Bullet]:
         """
-        Retrieve most relevant bullets for current context.
+        Backwards-compatible helper that now proxies to get_playbook.
         
-        Following ACE paper: Retrieve bullets based on:
-        - Semantic similarity to query (if provided)
-        - Tool-specific bullets
-        - Usage frequency
-        
-        Args:
-            query: Optional query text for semantic search
-            tool_name: Optional tool name filter
-            top_k: Maximum number of bullets to return
-            
-        Returns:
-            List of most relevant bullets
+        The ACE paper delegates relevance selection to the Generator itself.
+        Consequently, this method simply returns the playbook (optionally limited)
+        instead of performing semantic search.
         """
-        if query:
-            # Semantic search
-            query_embedding = self.embedder.embed(query)
-            similar_ids = self.vector_index.search(
-                query_embedding,
-                k=top_k * 2  # Get more candidates
-            )
-            
-            # Retrieve bullets
-            bullets = []
-            for bullet_id, similarity in similar_ids:
-                bullet = self.storage.get_bullet_by_id(bullet_id)
-                if bullet and (tool_name is None or bullet.tool_name == tool_name):
-                    bullets.append(bullet)
-            
-            # Sort by usage count and limit
-            bullets.sort(key=lambda b: b.usage_count, reverse=True)
-            return bullets[:top_k]
-        
-        else:
-            # Simple retrieval by tool and usage
-            bullets = self.storage.get_bullets(tool_name=tool_name, limit=top_k)
-            return bullets
+        _ = query  # preserved for API compatibility
+        _ = top_k
+        return self.get_playbook(tool_name=tool_name)
     
     def format_bullets_for_prompt(self, bullets: List[Bullet]) -> str:
         """
@@ -237,4 +226,3 @@ class Curator:
             'by_category': by_category,
             'most_used': most_used
         }
-

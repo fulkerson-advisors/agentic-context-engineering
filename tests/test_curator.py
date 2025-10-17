@@ -241,3 +241,28 @@ def test_format_bullets_for_prompt_groups_general_and_tool_sections():
     assert "- Verify API credentials before making calls." in formatted
     assert "### weather" in formatted
     assert "- Weather tool expects metric units by default." in formatted
+
+
+def test_get_playbook_returns_all_bullets_ordered_by_usage():
+    storage = FakeStorage()
+    vector_index = FakeVectorIndex()
+    embedder = FakeEmbedder()
+    curator = Curator(storage=storage, vector_index=vector_index, embedder=embedder)
+
+    bullet_low = Bullet(
+        id="low",
+        content="Low usage",
+        usage_count=1,
+        embedding=[0.1, 0.1, 0.1],
+    )
+    bullet_high = Bullet(
+        id="high",
+        content="High usage",
+        usage_count=5,
+        embedding=[0.2, 0.2, 0.2],
+    )
+    storage.add_bullet(bullet_low)
+    storage.add_bullet(bullet_high)
+
+    playbook = curator.get_playbook()
+    assert [b.id for b in playbook] == ["high", "low"]
