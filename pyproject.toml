@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agentic-context-engineering"
-version = "0.1.2"
+version = "1.0.4"
 description = "Agentic Context Engineering utilities for OpenAI Agents."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -26,12 +26,12 @@ classifiers = [
 keywords = ["openai", "agents", "context", "faiss", "llm"]
 
 dependencies = [
-  "openai-agents==0.3.3",
+  "openai-agents>=0.3.3",
   "openai>=1.109.1",
   "pydantic>=2.0.0",
-  "faiss-cpu",
-  "numpy",
-  "python-dotenv",
+  "faiss-cpu>=1.9.0",
+  "numpy>=1.26.4",
+  "python-dotenv>=1.0.1",
 ]
 
 [project.urls]
