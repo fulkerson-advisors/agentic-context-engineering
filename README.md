@@ -196,6 +196,79 @@ This modularity keeps ACE adaptable as your stack evolves.
    - Feed the returned bullets into `Curator.add_bullets(...)`.
    - Retrieve guidelines with `Curator.get_relevant_bullets(...)` and format them via `Curator.format_bullets_for_prompt(...)`.
 
+### End-to-End Meeting Planner Example
+
+Below is a minimal async script that wires ACE into the OpenAI Agents SDK and
+teaches the agent a trivial meeting-planning rule after a failed tool run.
+
+```python
+import asyncio
+import datetime
+
+from dotenv import load_dotenv
+from agents import Agent, function_tool
+
+from ace import (
+    Curator,
+    OpenAIReflector,
+    SQLiteBulletStorage,
+    FAISSVectorIndex,
+    OpenAIEmbedder,
+    ACEAgent,
+)
+
+
+load_dotenv()  # pull OPENAI_API_KEY / model hints from your .env
+
+
+@function_tool
+def plan_meeting(date: datetime.date):
+    """Plan a meeting for a specific date."""
+
+    print(f"planning meeting for {date}")
+
+    if date == datetime.date(2025, 10, 18):
+        return "Actually, today is not October 17, 2025 but October 18, 2025."
+    if date == datetime.date(2025, 10, 19):
+        return "Meeting confirmed for October 19, 2025. Jay-Z will attend."
+    return "Date not recognised."
+
+
+async def main():
+    storage = SQLiteBulletStorage("my_agent.db")
+    embedder = OpenAIEmbedder()
+    vector_index = FAISSVectorIndex(embedder.dimension(), "my_agent.faiss")
+    curator = Curator(storage, vector_index, embedder)
+    reflector = OpenAIReflector()
+
+    agent = Agent(
+        name="alphonse",
+        model="gpt-4.1-mini",
+        instructions="Handle scheduling questions using available tools.",
+        tools=[plan_meeting],
+    )
+
+    ace_agent = ACEAgent(agent=agent, curator=curator, reflector=reflector)
+
+    result = await ace_agent.run(
+        "Plan tomorrow's meetings. Today is Oct 17, 2025. Try planning again with the new date."
+    )
+
+    print(result.final_output)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+Example output:
+
+```
+planning meeting for 2025-10-18
+planning meeting for 2025-10-19
+The meeting has been planned for tomorrow, October 19, 2025, and Jay-Z will be attending. If you need any more details or want to schedule additional meetings, please let me know!
+```
+
 ---
 
 ## Project Status & Roadmap
