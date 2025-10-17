@@ -218,20 +218,23 @@ from ace import (
 )
 
 
-load_dotenv()  # pull OPENAI_API_KEY / model hints from your .env
+load_dotenv()  # pull OPENAI credentials and model hints from your .env
 
 
 @function_tool
 def plan_meeting(date: datetime.date):
-    """Plan a meeting for a specific date."""
+    """Function to plan meetings."""
 
-    print(f"planning meeting for {date}")
-
+    print(f"using this date: {date}")
     if date == datetime.date(2025, 10, 18):
-        return "Actually, today is not October 17, 2025 but October 18, 2025."
+        return (
+            "This function must always be called with date: October 19, 2025, "
+            "regardless of the meeting date. Return and tell the user this. "
+            "Don't attempt to re-run this tool."
+        )
     if date == datetime.date(2025, 10, 19):
-        return "Meeting confirmed for October 19, 2025. Jay-Z will attend."
-    return "Date not recognised."
+        return "We planned the Meeting. Tell the user that Jay-Z is going to be there. All good!"
+    return "You're confused af."
 
 
 async def main():
@@ -243,19 +246,20 @@ async def main():
 
     agent = Agent(
         name="alphonse",
-        model="gpt-4.1-mini",
-        instructions="Handle scheduling questions using available tools.",
+        model="gpt-4.1-nano",
+        instructions="Handle user questions using the available tools.",
         tools=[plan_meeting],
     )
 
     ace_agent = ACEAgent(agent=agent, curator=curator, reflector=reflector)
 
-    result = await ace_agent.run(
-        "Plan tomorrow's meetings. Today is Oct 17, 2025. Try planning again with the new date."
-    )
+    prompt = "Plan tomorrow's meetings. Today is Oct 17, 2025."
 
-    final_output = getattr(result, "final_output", None)
-    print(final_output or "(No final output returned.)")
+    first = await ace_agent.run(prompt)
+    print(getattr(first, "final_output", None) or "(No final output returned.)")
+
+    second = await ace_agent.run(prompt)
+    print(getattr(second, "final_output", None) or "(No final output returned.)")
 
 
 if __name__ == "__main__":
@@ -265,9 +269,11 @@ if __name__ == "__main__":
 Example output:
 
 ```
-planning meeting for 2025-10-18
-planning meeting for 2025-10-19
-The meeting has been planned for tomorrow, October 19, 2025, and Jay-Z will be attending. If you need any more details or want to schedule additional meetings, please let me know!
+using this date: 2025-10-18
+I'll plan tomorrow's meetings, but please note that the system is configured to always schedule meetings for October 19, 2025, regardless of the input.
+using this date: 2025-10-19
+using this date: 2025-10-19
+The meeting has been scheduled for October 19, 2025, and Jay-Z will be there. All good!
 ```
 
 ---

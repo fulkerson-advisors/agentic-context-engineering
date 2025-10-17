@@ -4,6 +4,7 @@ OpenAI Agents SDK integration for ACE.
 Following ACE paper: Inject learned context into agent instructions.
 """
 
+import asyncio
 import json
 import logging
 from typing import Any, Dict, List
@@ -161,7 +162,8 @@ class ACEAgent:
         agent: Agent,
         curator,
         reflector,
-        enable_learning: bool = True
+        enable_learning: bool = True,
+        verbose: bool = False,
     ):
         """
         Initialize ACE-enhanced agent.
@@ -171,28 +173,32 @@ class ACEAgent:
             curator: ACE Curator instance
             reflector: ACE Reflector instance
             enable_learning: Whether to enable automatic learning
+            verbose: When True, log bullets used and insights learned
         """
         self.framework = OpenAIAgentsFramework(agent)
         self.curator = curator
         self.reflector = reflector
         self.enable_learning = enable_learning
+        self.verbose = verbose
     
-    async def run(self, input: str, **kwargs) -> Any:
+    async def _run_internal(self, input: str, **kwargs) -> Any:
         """
-        Run agent with ACE context injection and learning.
-        
-        Args:
-            input: User input
-            **kwargs: Additional parameters for agent
-            
-        Returns:
-            Agent result
+        Core async runner that injects context, executes the agent, and triggers learning.
         """
         # Get the full playbook (Generator will decide what to apply)
         bullets = self.curator.get_playbook()
         
         # Format context
         context = self.curator.format_bullets_for_prompt(bullets)
+
+        if self.verbose:
+            if bullets:
+                logger.info("Injecting %d bullet(s) into prompt:", len(bullets))
+                for bullet in bullets:
+                    scope = bullet.tool_name or "General"
+                    logger.info("  • [%s | %s] %s", scope, bullet.category, bullet.content)
+            else:
+                logger.info("No bullets available for prompt injection.")
         
         # Mark bullets as used
         if bullets:
@@ -211,12 +217,42 @@ class ACEAgent:
         
         return result
     
+    async def run_async(self, input: str, **kwargs) -> Any:
+        """
+        Async API mirroring the Agents SDK Runner.run() semantics.
+        """
+        return await self._run_internal(input=input, **kwargs)
+
+    async def run(self, input: str, **kwargs) -> Any:
+        """Backward-compatible alias for run_async."""
+        return await self.run_async(input=input, **kwargs)
+
+    def run_sync(self, input: str, **kwargs) -> Any:
+        """
+        Synchronous helper mirroring Runner.run_sync() in the Agents SDK.
+        """
+        coroutine = self.run_async(input=input, **kwargs)
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(coroutine)
+
+        if loop.is_running():
+            raise RuntimeError(
+                "ACEAgent.run_sync() cannot be called while an event loop is running. "
+                "Use run_async() instead."
+            )
+
+        return loop.run_until_complete(coroutine)
+    
     async def _learn_from_result(self, result: Any, user_input: str):
         """Learn from agent execution."""
         # Extract tool executions
         executions = self.framework.extract_tool_executions(result)
         
         if not executions:
+            if self.verbose:
+                logger.info("No tool executions found to learn from.")
             return
         
         # Reflect on each execution
@@ -228,9 +264,29 @@ class ACEAgent:
             
             if bullets:
                 added = self.curator.add_bullets(bullets)
-                logger.info("✓ Learned %s new insights from %s", added, execution.tool_name)
-                for bullet in bullets:
-                    logger.info("  [%s] %s", bullet.category, bullet.content)
+                if self.verbose:
+                    if added:
+                        logger.info(
+                            "Learned %d new bullet(s) from tool '%s'.",
+                            added,
+                            execution.tool_name,
+                        )
+                    else:
+                        logger.info(
+                            "No new bullets persisted from tool '%s' (duplicates).",
+                            execution.tool_name,
+                        )
+                    for bullet in bullets:
+                        metadata_msg = None
+                        if bullet.metadata:
+                            metadata_msg = bullet.metadata.get("reflector_message")
+                        suffix = f" (reflector message: {metadata_msg})" if metadata_msg else ""
+                        logger.info("  • [%s] %s%s", bullet.category, bullet.content, suffix)
+            elif self.verbose:
+                logger.info(
+                    "Reflector returned no insights for tool '%s'.",
+                    execution.tool_name,
+                )
     
     def get_stats(self) -> dict:
         """Get learning statistics."""
