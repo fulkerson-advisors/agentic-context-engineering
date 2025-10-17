@@ -168,6 +168,53 @@ This modularity keeps ACE adaptable as your stack evolves.
   ```bash
   UV_PUBLISH_TOKEN=pypi-<token> uv publish
   ```
+- Install the library directly from PyPI (after publishing):
+  ```bash
+  uv pip install agentic-context-engineering
+  ```
+
+## Using ACE After Installation
+
+1. **Install and configure credentials**
+   ```bash
+   uv pip install agentic-context-engineering
+   export OPENAI_API_KEY=sk-...
+   # optionally set OPENAI_MODEL / OPENAI_EMBEDDING_MODEL / OPENAI_REFLECTOR_MODEL
+   ```
+2. **Create the core components**
+   ```python
+   from ace import (
+       Curator,
+       OpenAIReflector,
+       SQLiteBulletStorage,
+       FAISSVectorIndex,
+       OpenAIEmbedder,
+       ACEAgent,
+   )
+   
+   storage = SQLiteBulletStorage("my_agent.db")
+   embedder = OpenAIEmbedder()
+   vector_index = FAISSVectorIndex(embedder.dimension(), "my_agent.faiss")
+   curator = Curator(storage, vector_index, embedder)
+   reflector = OpenAIReflector()
+   ```
+3. **Wire an OpenAI Agent (optional but recommended)**
+   ```python
+   from agents import Agent
+   
+   agent = Agent(
+       model="gpt-4.1-mini",
+       instructions="Handle user questions using the available tools.",
+       tools=[...],  # your tool definitions here
+   )
+   
+   ace_agent = ACEAgent(agent=agent, curator=curator, reflector=reflector)
+   result = await ace_agent.run("Plan tomorrow's meetings.")
+   ```
+4. **Manual integration (custom frameworks)**
+   - Call `OpenAIReflector.reflect(...)` with a `ToolExecution` to generate insights.
+   - Feed the returned bullets into `Curator.add_bullets(...)`.
+   - Retrieve guidelines with `Curator.get_relevant_bullets(...)` and format them via `Curator.format_bullets_for_prompt(...)`.
 
 ---
 

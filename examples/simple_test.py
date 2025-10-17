@@ -1,12 +1,22 @@
 #!/usr/bin/env python3
 """
-Simple test to verify ACE components work independently.
+Simple integration demo to verify ACE components working together.
+
+This script makes live OpenAI API calls. When collected by pytest it is skipped
+automatically so that the unit test suite remains self-contained.
 """
 
 import asyncio
 import logging
 import sys
 from pathlib import Path
+
+import pytest
+
+pytestmark = pytest.mark.skip(
+    "examples/simple_test.py exercises live OpenAI APIs and async flows; run manually instead of via pytest."
+)
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
