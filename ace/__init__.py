@@ -12,7 +12,7 @@ from ace.storage.sqlite_storage import SQLiteBulletStorage
 from ace.storage.faiss_index import FAISSVectorIndex
 from ace.storage.embedder import OpenAIEmbedder
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 __all__ = [
     "Curator",
