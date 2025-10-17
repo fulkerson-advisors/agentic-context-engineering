@@ -151,28 +151,6 @@ ACE’s components are intentionally decoupled so you can swap pieces without re
 
 This modularity keeps ACE adaptable as your stack evolves.
 
----
-
-## Testing & Packaging
-
-- Run the test suite (`test` extra optional but recommended):
-  ```bash
-  uv sync --extra test
-  uv run pytest
-  ```
-- Build distributables for PyPI:
-  ```bash
-  uv build
-  ```
-- Publish after creating a token on PyPI (or TestPyPI):
-  ```bash
-  UV_PUBLISH_TOKEN=pypi-<token> uv publish
-  ```
-- Install the library directly from PyPI (after publishing):
-  ```bash
-  uv pip install agentic-context-engineering
-  ```
-
 ## Using ACE After Installation
 
 1. **Install and configure credentials**
