@@ -9,7 +9,7 @@ import uuid
 from typing import List, Optional, Literal
 
 from openai import OpenAI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ace.config import get_openai_model
 from ace.core.interfaces import Reflector as ReflectorInterface, ToolExecution, Bullet
@@ -34,7 +34,7 @@ class InsightItem(BaseModel):
 class InsightsList(BaseModel):
     """Pydantic model for structured output."""
 
-    insights: List[InsightItem]
+    insights: Optional[List[InsightItem]] = Field(default=None)
 
 
 class OpenAIReflector(ReflectorInterface):
@@ -65,7 +65,7 @@ Return JSON that matches the schema:
   ]
 }
 
-Generate 1-3 insights per execution but ensure they are relevant. Do not make things up."""
+Generate 0-1 insights per execution but ensure they are relevant. Do not make things up."""
     
     def __init__(
         self,
@@ -101,17 +101,20 @@ Generate 1-3 insights per execution but ensure they are relevant. Do not make th
         
         try:
             # Get insights using structured output
-            response = self.client.beta.chat.completions.parse(
+            response = self.client.responses.parse(
                 model=self.model,
-                messages=[
+                input=[
                     {"role": "system", "content": self.SYSTEM_PROMPT},
                     {"role": "user", "content": prompt}
                 ],
-                response_format=InsightsList,
+                text_format=InsightsList,
             )
-            
-            parsed: InsightsList = response.choices[0].message.parsed
-            insights = parsed.insights
+
+            parsed: Optional[InsightsList] = getattr(response, "output_parsed", None)
+            if parsed is None:
+                return []
+
+            insights = parsed.insights or []
             
             # Convert to Bullets
             bullets = []
@@ -142,12 +145,14 @@ Generate 1-3 insights per execution but ensure they are relevant. Do not make th
         """Build reflection prompt from execution."""
         status = "succeeded" if execution.success else "failed"
         
+        result_snippet = (execution.result or "")[:500]
+
         prompt_parts = [
             "Analyze this tool execution and extract reusable insights.\n",
             f"Tool: {execution.tool_name}",
             f"Arguments: {execution.arguments}",
             f"Status: {status}",
-            f"Result: {execution.result[:500]}"
+            f"Result: {result_snippet}"
         ]
         
         if execution.error:

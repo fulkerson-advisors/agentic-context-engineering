@@ -39,8 +39,8 @@ class ToolExecution:
     """Record of a tool execution for reflection."""
     tool_name: str
     arguments: Dict[str, Any]
-    result: str
-    success: bool
+    result: Optional[str] = None
+    success: bool = False
     error: Optional[str] = None
     timestamp: datetime = None
     context: Optional[str] = None

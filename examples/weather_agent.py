@@ -176,7 +176,11 @@ async def main():
         try:
             result = await ace_agent.run(query)
             logger.info("")
-            logger.info("✓ Response: %s", result.final_output)
+            final_output = getattr(result, "final_output", None)
+            if final_output:
+                logger.info("✓ Response: %s", final_output)
+            else:
+                logger.info("(No final output returned by the agent)")
             logger.info("")
         except Exception as e:
             logger.error("")

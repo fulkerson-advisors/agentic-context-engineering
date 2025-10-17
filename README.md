@@ -254,7 +254,8 @@ async def main():
         "Plan tomorrow's meetings. Today is Oct 17, 2025. Try planning again with the new date."
     )
 
-    print(result.final_output)
+    final_output = getattr(result, "final_output", None)
+    print(final_output or "(No final output returned.)")
 
 
 if __name__ == "__main__":
